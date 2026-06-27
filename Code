@@ -1,0 +1,58 @@
+#define ENA 10
+#define ENB 11
+#define IN1 A0
+#define IN2 A1
+#define IN3 A2
+#define IN4 A3
+int sensorPins[8]={2,3,4,5,6,7,8,9};
+int sensorWeight[8]={-350,-250,-150,-50,50,150,250,350};
+float Kp=0.18;
+float Ki=0.00;
+float Kd=2.8;
+int error=0;
+int previousError=0;
+int integral=0;
+int baseSpeed=170;
+void setup()
+{
+pinMode(IN1,OUTPUT);
+pinMode(IN2,OUTPUT);
+pinMode(IN3,OUTPUT);
+pinMode(IN4,OUTPUT);
+pinMode(ENA,OUTPUT);
+pinMode(ENB,OUTPUT);
+}
+
+void loop()
+{
+int position=0;
+int active=0;
+for(int i=0;i<8;i++)
+{
+    if(digitalRead(sensorPins[i]))
+    {
+        position+=sensorWeight[i];
+        active++;
+    }
+}
+if(active>0)
+position/=active;
+error=position;
+integral+=error;
+int derivative=error-previousError;
+int correction=
+(Kp*error)+
+(Ki*integral)+
+(Kd*derivative);
+previousError=error;
+int leftSpeed=baseSpeed-correction;
+int rightSpeed=baseSpeed+correction;
+leftSpeed=constrain(leftSpeed,0,255);
+rightSpeed=constrain(rightSpeed,0,255);
+analogWrite(ENA,leftSpeed);
+analogWrite(ENB,rightSpeed);
+digitalWrite(IN1,HIGH);
+digitalWrite(IN2,LOW);
+digitalWrite(IN3,HIGH);
+digitalWrite(IN4,LOW);
+}
